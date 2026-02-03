@@ -6,6 +6,9 @@ Tienda online para venta de fundas personalizadas para teléfonos con posibilida
 ## Fecha de Creación
 3 de Febrero, 2026
 
+## Última Actualización
+3 de Febrero, 2026 - Diseño futurista, nuevos precios, cámaras dinámicas
+
 ## User Personas
 1. **Cliente Final**: Usuario que desea personalizar fundas con sus propias imágenes
 2. **Administrador**: Gestiona productos, pedidos, usuarios y estadísticas
@@ -20,13 +23,17 @@ Tienda online para venta de fundas personalizadas para teléfonos con posibilida
 - Términos y condiciones / Políticas de privacidad
 
 ## Implementado ✅
+- [x] **Diseño futurista** con colores neón verde (#00FF88) y cyan (#00D4FF)
 - [x] Landing page con hero, features y productos destacados
+- [x] **Sección de agradecimiento a Emergent AI** en el footer
 - [x] Catálogo de productos con búsqueda y filtros
 - [x] Personalizador de fundas con vista previa en tiempo real
+- [x] **Vista previa con cámaras dinámicas** según modelo de teléfono seleccionado
 - [x] Subida de imágenes personalizadas (max 5MB)
 - [x] Selección de marca/modelo de teléfono (Apple, Samsung, Xiaomi, Huawei, Motorola)
 - [x] Carrito de compras persistente (localStorage)
 - [x] Checkout con formulario completo
+- [x] **Método de pago: Transferencia o Pago al Recoger en Tienda**
 - [x] Rastreo de pedidos por número de orden
 - [x] Panel Admin: Dashboard con estadísticas
 - [x] Panel Admin: Gestión de productos (CRUD)
@@ -39,6 +46,12 @@ Tienda online para venta de fundas personalizadas para teléfonos con posibilida
 - [x] Política de privacidad
 - [x] API RESTful completa con FastAPI
 - [x] Base de datos MongoDB
+
+## Productos Disponibles
+| Producto | Precio | Descripción |
+|----------|--------|-------------|
+| Funda Personalizada Una Pieza | $180 | Uso normal, diseño elegante |
+| Funda Personalizada Dos Piezas | $280 | Uso rudo, máxima protección |
 
 ## Backlog - Próximas Funcionalidades
 
