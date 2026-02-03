@@ -164,7 +164,7 @@ class LABCELAPITester:
 
     def test_get_single_product(self):
         """Test getting a single product"""
-        return self.run_test("Get Single Product", "GET", "products/prod_funda_basic", 200)
+        return self.run_test("Get Single Product", "GET", "products/prod_funda_normal", 200)
 
     def print_summary(self):
         """Print test summary"""
