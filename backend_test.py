@@ -72,8 +72,46 @@ class LABCELAPITester:
         return self.run_test("Seed Data", "POST", "seed", 200)
 
     def test_get_products(self):
-        """Test getting products"""
-        return self.run_test("Get Products", "GET", "products", 200)
+        """Test getting products with correct prices ($180 and $280)"""
+        success, response = self.run_test("Get Products", "GET", "products", 200)
+        
+        if success and response:
+            # Check if we have the expected products with correct prices
+            products = response
+            expected_products = {
+                "Funda Personalizada Una Pieza": 180.00,
+                "Funda Personalizada Dos Piezas - Uso Rudo": 280.00
+            }
+            
+            found_products = {}
+            for product in products:
+                if product['name'] in expected_products:
+                    found_products[product['name']] = product['price']
+            
+            print(f"   Found products: {found_products}")
+            
+            # Verify prices
+            all_correct = True
+            for name, expected_price in expected_products.items():
+                if name in found_products:
+                    if found_products[name] == expected_price:
+                        print(f"   ✅ {name}: ${found_products[name]} (correct)")
+                    else:
+                        print(f"   ❌ {name}: ${found_products[name]} (expected ${expected_price})")
+                        all_correct = False
+                else:
+                    print(f"   ❌ Missing product: {name}")
+                    all_correct = False
+            
+            if not all_correct:
+                self.failed_tests.append({
+                    'name': 'Product Prices Validation',
+                    'error': 'Product prices do not match expected values'
+                })
+                return False
+            
+            return True
+        return success
 
     def test_get_phone_brands(self):
         """Test getting phone brands"""
