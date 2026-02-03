@@ -126,14 +126,14 @@ class LABCELAPITester:
         return self.run_test("Get Phone Models by Brand", "GET", "phone-models?brand_id=brand_apple", 200)
 
     def test_create_order(self):
-        """Test creating an order"""
+        """Test creating an order with new payment method 'recoger_tienda'"""
         order_data = {
             "items": [
                 {
-                    "product_id": "prod_funda_basic",
-                    "product_name": "Funda Personalizada Básica",
+                    "product_id": "prod_funda_normal",
+                    "product_name": "Funda Personalizada Una Pieza",
                     "quantity": 1,
-                    "price": 15.99,
+                    "price": 180.00,
                     "phone_brand": "Apple",
                     "phone_model": "iPhone 15",
                     "custom_image_url": None,
@@ -144,11 +144,19 @@ class LABCELAPITester:
             "customer_email": "test@example.com",
             "customer_phone": "+1234567890",
             "customer_whatsapp": "+1234567890",
-            "shipping_address": "123 Test Street, Test City, 12345",
-            "payment_method": "transferencia",
-            "notes": "Test order"
+            "shipping_address": "Test Address, San Antonio, TX",
+            "payment_method": "recoger_tienda",  # New payment method
+            "notes": "Test order for pickup in store"
         }
-        return self.run_test("Create Order", "POST", "orders", 200, order_data)
+        
+        success, response = self.run_test("Create Order with Store Pickup", "POST", "orders", 200, order_data)
+        
+        if success and response:
+            print(f"   Order ID: {response.get('order_id')}")
+            print(f"   Total: ${response.get('total')}")
+            print(f"   Status: {response.get('status')}")
+        
+        return success, response
 
     def test_track_order(self, order_id):
         """Test tracking an order"""
