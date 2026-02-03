@@ -104,7 +104,7 @@ class OrderCreate(BaseModel):
     customer_phone: str
     customer_whatsapp: Optional[str] = None
     shipping_address: str
-    payment_method: str = "transferencia"  # transferencia, contra_entrega
+    payment_method: str = "transferencia"  # transferencia, recoger_tienda
     notes: Optional[str] = None
 
 class Order(BaseModel):
@@ -884,37 +884,26 @@ async def seed_data():
     # Seed products
     products = [
         {
-            "product_id": "prod_funda_basic",
-            "name": "Funda Personalizada Básica",
-            "description": "Funda de silicona suave con tu diseño personalizado. Protección completa para tu teléfono.",
-            "price": 15.99,
+            "product_id": "prod_funda_normal",
+            "name": "Funda Personalizada Una Pieza",
+            "description": "Funda personalizada de una pieza para uso normal. Diseño elegante con tu imagen favorita, protección diaria para tu smartphone.",
+            "price": 180.00,
             "category": "funda",
-            "base_image_url": "https://images.unsplash.com/photo-1525446517618-9a9e5430288b?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
+            "base_image_url": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
             "is_customizable": True,
             "is_active": True,
             "stock": 100
         },
         {
-            "product_id": "prod_funda_premium",
-            "name": "Funda Personalizada Premium",
-            "description": "Funda de policarbonato resistente con acabado mate. Máxima protección y calidad de impresión.",
-            "price": 24.99,
+            "product_id": "prod_funda_rudo",
+            "name": "Funda Personalizada Dos Piezas - Uso Rudo",
+            "description": "Funda personalizada de dos piezas para uso rudo. Máxima protección con diseño personalizado, ideal para trabajo pesado y aventuras.",
+            "price": 280.00,
             "category": "funda",
-            "base_image_url": "https://images.unsplash.com/photo-1636010858142-e1ccc5623542?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
+            "base_image_url": "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
             "is_customizable": True,
             "is_active": True,
             "stock": 50
-        },
-        {
-            "product_id": "prod_funda_slim",
-            "name": "Funda Ultra Slim",
-            "description": "Funda ultra delgada que mantiene el diseño original de tu teléfono con tu imagen personalizada.",
-            "price": 19.99,
-            "category": "funda",
-            "base_image_url": "https://images.unsplash.com/photo-1713032396284-9f5c6595359c?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
-            "is_customizable": True,
-            "is_active": True,
-            "stock": 75
         },
     ]
     
