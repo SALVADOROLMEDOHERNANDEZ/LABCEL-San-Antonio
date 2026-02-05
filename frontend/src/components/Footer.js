@@ -68,15 +68,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-gray-500">
               <li className="flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-[#00FF88]" />
-                <span>+1 234 567 890</span>
+                <span>+52 749 110 0081</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-[#00FF88]" />
-                <span className="text-xs">olmedohernandezsalvador@gmail.com</span>
+                <span className="text-xs">@gmail.com</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-[#00FF88] mt-0.5" />
-                <span>San Antonio, TX</span>
+                <span>Calle Motolinea #10,Heroica Ciudad de Calpulalpan, Tlaxcala.</span>
               </li>
             </ul>
           </div>
