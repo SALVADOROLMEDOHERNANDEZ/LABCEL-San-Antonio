@@ -47,7 +47,7 @@ export default function Terms() {
         <section className="mb-8">
           <h2 className="text-xl font-bold mb-4">4. Precios y Pagos</h2>
           <p className="text-gray-600 mb-4">
-            Todos los precios están expresados en dólares estadounidenses (USD) e incluyen impuestos aplicables. Los métodos de pago aceptados son:
+            Todos los precios están expresados en pesos mexicanos (MX) e incluyen impuestos aplicables. Los métodos de pago aceptados son:
           </p>
           <ul className="list-disc pl-6 text-gray-600 space-y-2">
             <li>Transferencia bancaria</li>
