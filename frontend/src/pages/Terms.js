@@ -88,7 +88,7 @@ export default function Terms() {
             Para cualquier consulta sobre estos términos, puede contactarnos a través de:
           </p>
           <ul className="list-disc pl-6 text-gray-600 space-y-2 mt-2">
-            <li>Email: olmedohernandezsalvador@gmail.com</li>
+            <li>Email: labcelsanantonio@gmail.com</li>
             <li>WhatsApp: Disponible en nuestro sitio web</li>
           </ul>
         </section>
