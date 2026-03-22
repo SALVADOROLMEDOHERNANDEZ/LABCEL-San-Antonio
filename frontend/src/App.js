@@ -23,6 +23,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AuthCallback from "./components/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
+import InstallPWA from "./components/InstallPWA";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -105,6 +106,7 @@ function App() {
             <Footer />
           </div>
           <Toaster position="top-right" richColors closeButton />
+          <InstallPWA />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
