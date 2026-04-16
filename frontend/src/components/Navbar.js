@@ -27,6 +27,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/catalogo', label: 'Catálogo' },
     { href: '/personalizar', label: 'Personalizar' },
+    { href: '/plantillas', label: 'Plantillas' },
     { href: '/rastrear', label: 'Rastrear Pedido' },
   ];
 

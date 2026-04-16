@@ -1215,7 +1215,7 @@ async def seed_extras():
         {"template_id": "tmpl_neon", "name": "Neon City", "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80", "category": "abstracto", "tags": ["neon", "ciudad", "nocturno"], "is_active": True},
         {"template_id": "tmpl_pet", "name": "Huellitas", "image_url": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80", "category": "mascotas", "tags": ["perro", "mascotas", "tierno"], "is_active": True},
         {"template_id": "tmpl_sunset", "name": "Atardecer Dorado", "image_url": "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=400&q=80", "category": "naturaleza", "tags": ["atardecer", "sol", "dorado"], "is_active": True},
-        {"template_id": "tmpl_marble", "name": "Mármol Elegante", "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=80", "category": "abstracto", "tags": ["mármol", "elegante", "minimalista"], "is_active": True},
+        {"template_id": "tmpl_marble", "name": "Mármol Elegante", "image_url": "https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?w=400&q=80", "category": "abstracto", "tags": ["mármol", "elegante", "minimalista"], "is_active": True},
     ]
     
     for tmpl in templates:

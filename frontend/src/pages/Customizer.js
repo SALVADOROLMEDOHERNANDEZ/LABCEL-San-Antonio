@@ -218,6 +218,23 @@ export default function Customizer() {
   
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [savingDesign, setSavingDesign] = useState(false);
+
+  // Load template or saved design from navigation state
+  useEffect(() => {
+    if (location.state?.templateImage) {
+      setCustomImage(location.state.templateImage);
+      setCustomImageUrl(location.state.templateImage);
+    }
+    if (location.state?.savedDesign) {
+      const d = location.state.savedDesign;
+      if (d.custom_image_url) setCustomImageUrl(d.custom_image_url);
+      if (d.preview_image_url) setCustomImage(d.preview_image_url);
+      if (d.phone_brand) setSelectedBrand(d.phone_brand);
+      if (d.image_position_x != null) setImagePosition({ x: d.image_position_x, y: d.image_position_y });
+      if (d.image_scale != null) setImageScale([d.image_scale]);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchData();
@@ -345,6 +362,40 @@ export default function Customizer() {
     });
 
     navigate('/carrito');
+  };
+
+  const handleSaveDesign = async () => {
+    if (!user) {
+      toast.error('Inicia sesión para guardar diseños');
+      return;
+    }
+    if (!selectedProduct || !selectedBrand || !selectedModel) {
+      toast.error('Completa la configuración antes de guardar');
+      return;
+    }
+    setSavingDesign(true);
+    try {
+      const brandName = brands.find(b => b.brand_id === selectedBrand)?.name || '';
+      const modelName = models.find(m => m.model_id === selectedModel)?.name || '';
+      await apiClient.post('/designs', {
+        name: `${brandName} ${modelName} - ${new Date().toLocaleDateString('es-MX')}`,
+        product_id: selectedProduct.product_id,
+        phone_brand: selectedBrand,
+        phone_model: selectedModel,
+        phone_brand_name: brandName,
+        phone_model_name: modelName,
+        custom_image_url: customImageUrl || '',
+        preview_image_url: customImage || '',
+        image_position_x: imagePosition.x,
+        image_position_y: imagePosition.y,
+        image_scale: imageScale[0],
+      });
+      toast.success('Diseño guardado correctamente');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Error al guardar');
+    } finally {
+      setSavingDesign(false);
+    }
   };
 
   const cameraConfig = cameraConfigs[selectedModel] || null;
@@ -599,14 +650,37 @@ export default function Customizer() {
                     </span>
                   </div>
                 )}
-                <Button
-                  onClick={handleAddToCart}
-                  className="w-full h-14 btn-futuristic"
-                  data-testid="add-to-cart-button"
-                >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Añadir al Carrito
-                </Button>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    className="w-full h-14 btn-futuristic"
+                    data-testid="add-to-cart-button"
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Añadir al Carrito
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={handleSaveDesign}
+                      disabled={savingDesign}
+                      variant="outline"
+                      className="h-10 border-[#00FF88]/30 text-[#00FF88] hover:bg-[#00FF88]/10"
+                      data-testid="save-design-button"
+                    >
+                      <Save className="h-4 w-4 mr-1.5" />
+                      {savingDesign ? 'Guardando...' : 'Guardar'}
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/plantillas')}
+                      variant="outline"
+                      className="h-10 border-[#00D4FF]/30 text-[#00D4FF] hover:bg-[#00D4FF]/10"
+                      data-testid="templates-button"
+                    >
+                      <Layout className="h-4 w-4 mr-1.5" />
+                      Plantillas
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
