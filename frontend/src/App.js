@@ -72,11 +72,7 @@ function AppRouter() {
           <MyOrders />
         </ProtectedRoute>
       } />
-      <Route path="/mis-disenos" element={
-        <ProtectedRoute>
-          <MyDesigns />
-        </ProtectedRoute>
-      } />
+      <Route path="/mis-disenos" element={<MyDesigns />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={
