@@ -62,6 +62,21 @@ export default function AdminProducts() {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result;
+      setFormData(prev => ({
+        ...prev,
+        base_image_url: base64String
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -207,15 +222,26 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="base_image_url">URL de Imagen</Label>
-                  <Input
-                    id="base_image_url"
-                    name="base_image_url"
-                    value={formData.base_image_url}
-                    onChange={handleChange}
-                    placeholder="https://..."
-                    className="mt-1"
-                  />
+                  <Label htmlFor="base_image_url">Imagen del Producto</Label>
+                  <div className="mt-1 space-y-3">
+                    <Input
+                      id="base_image_url"
+                      name="base_image_url"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {formData.base_image_url && (
+                      <div className="w-full max-w-xs rounded-lg overflow-hidden border border-gray-200">
+                        <img 
+                          src={formData.base_image_url} 
+                          alt="Vista previa"
+                          className="w-full h-auto object-cover max-h-48"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="is_customizable">Personalizable</Label>

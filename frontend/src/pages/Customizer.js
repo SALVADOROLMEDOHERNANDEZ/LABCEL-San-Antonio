@@ -4,6 +4,7 @@ import { apiClient } from '../App';
 import { useCart } from '../context/CartContext';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
 import { Upload, RotateCcw, ZoomIn, ZoomOut, ShoppingCart, Image as ImageIcon, Sparkles } from 'lucide-react';
@@ -12,23 +13,89 @@ import { toast } from 'sonner';
 // Camera configurations for different phone models
 const cameraConfigs = {
   // Apple
+  // iPhone 11 series 
+  'model_iphone11': { type: 'dual-diagonal', count: 2 },
+  'model_iphone11pro': { type: 'triple-pro', count: 3 },
+  'model_iphone11promax': { type: 'triple-pro', count: 3 },
+  // iPhone 12 series (excluyendo 12 y 12 Pro)
+  'model_iphone12': { type: 'dual-diagonal', count: 2 }, 
+  'model_iphone12pro': { type: 'triple-pro', count: 3 }, 
+  'model_iphone12mini': { type: 'dual-diagonal', count: 2 },
+  'model_iphone12promax': { type: 'triple-pro', count: 3 },
+  // iPhone 13 series (excluyendo 13 y 13 Pro)
+  'model_iphone13': { type: 'dual-diagonal', count: 2 },
+  'model_iphone13pro': { type: 'triple-pro', count: 3 },
+  'model_iphone13mini': { type: 'dual-diagonal', count: 2 },
+  'model_iphone13promax': { type: 'triple-pro', count: 3 },
+  // iPhone 14 series (excluyendo 14 y 14 Pro)
+  'model_iphone14': { type: 'dual-diagonal', count: 2 },
+  'model_iphone14pro': { type: 'triple-pro', count: 3 }, 
+  'model_iphone14plus': { type: 'dual-diagonal', count: 2 },
+  'model_iphone14promax': { type: 'triple-pro', count: 3 },
+  // iPhone 15 series (excluyendo 15 y 15 Pro)
   'model_iphone15': { type: 'dual-diagonal', count: 2 },
   'model_iphone15pro': { type: 'triple-pro', count: 3 },
-  'model_iphone14': { type: 'dual-diagonal', count: 2 },
-  'model_iphone13': { type: 'dual-diagonal', count: 2 },
+  'model_iphone15plus': { type: 'dual-diagonal', count: 2 },
+  'model_iphone15promax': { type: 'triple-pro', count: 3 },
+   // iPhone 16 series (excluyendo 16 y 16 Pro)
+   'model_iphone16': { type: 'dual-diagonal', count: 2 },
+   'model_iphone16pro': { type: 'triple-pro', count: 3 },
+   'model_iphone16plus': { type: 'dual-diagonal', count: 2 },
+   'model_iphone16promax': { type: 'triple-pro', count: 3 },
+  // iPhone 17 series
+  'model_iphone17': { type: 'dual-diagonal', count: 2 },
+  'model_iphone17plus': { type: 'dual-diagonal', count: 2 },
+  'model_iphone17pro': { type: 'triple-pro', count: 3 },
+  'model_iphone17promax': { type: 'triple-pro', count: 3 },
   // Samsung
+  'model_s21': { type: 'triple-vertical', count: 3 },
+  'model_s21ultra': { type: 'quad-vertical', count: 4 },
+  'model_s22': { type: 'triple-vertical', count: 3 },
+  'model_s22ultra': { type: 'quad-vertical', count: 4 },
+  'model_s23': { type: 'triple-vertical', count: 3 },
+  'model_s23ultra': { type: 'quad-vertical', count: 4 },
   'model_s24': { type: 'triple-vertical', count: 3 },
   'model_s24ultra': { type: 'quad-vertical', count: 4 },
-  'model_s23': { type: 'triple-vertical', count: 3 },
-  'model_a54': { type: 'triple-vertical', count: 3 },
-  // Xiaomi
-  'model_redmi13': { type: 'dual-vertical', count: 2 },
-  'model_poco': { type: 'triple-vertical', count: 3 },
-  // Huawei
-  'model_p60': { type: 'triple-circle', count: 3 },
-  // Motorola
-  'model_edge40': { type: 'dual-vertical', count: 2 },
-};
+  'model_s25': { type: 'triple-vertical', count: 3 },
+  'model_s25ultra': { type: 'quad-vertical', count: 4 }, 
+    'model_zfold5': { type: 'triple-vertical', count: 3 }, 
+    'model_zflip5': { type: 'triple-vertical', count: 3 },
+    // Xiaomi
+    'model_redmi13': { type: 'dual-vertical', count: 2 },
+    'model_poco': { type: 'triple-vertical', count: 3 },
+    'model_mi11': { type: 'triple-vertical', count: 3 }, 
+    'model_mi12': { type: 'triple-vertical', count: 3 }, 
+    'model_mi13': { type: 'triple-vertical', count: 3 }, 
+    'model_mi14': { type: 'triple-vertical', count: 3 }, 
+    'model_redmi10': { type: 'dual-vertical', count: 2 }, 
+    'model_redmi11': { type: 'dual-vertical', count: 2 }, 
+    'model_redmi12': { type: 'dual-vertical', count: 2 }, 
+    'model_poco_x5': { type: 'triple-vertical', count: 3 }, 
+    'model_poco_x6': { type: 'triple-vertical', count: 3 },
+    // Huawei
+    'model_p60': { type: 'triple-circle', count: 3 },
+    'model_p40': { type: 'triple-circle', count: 3 }, 
+    'model_p50': { type: 'triple-circle', count: 3 }, 
+    'model_p70': { type: 'triple-circle', count: 3 }, 
+    'model_mate40': { type: 'triple-circle', count: 3 }, 
+    'model_mate50': { type: 'triple-circle', count: 3 }, 
+    'model_mate60': { type: 'triple-circle', count: 3 }, 
+    'model_mate70': { type: 'triple-circle', count: 3 }, 
+    'model_nova11': { type: 'dual-vertical', count: 2 }, 
+    'model_nova12': { type: 'dual-vertical', count: 2 },
+    // Motorola
+    'model_edge40': { type: 'dual-vertical', count: 2 },
+    'model_edge20': { type: 'dual-vertical', count: 2 }, 
+    'model_edge30': { type: 'dual-vertical', count: 2 }, 
+    'model_edge50': { type: 'dual-vertical', count: 2 }, 
+    'model_g100': { type: 'triple-vertical', count: 3 }, 
+    'model_g200': { type: 'triple-vertical', count: 3 }, 
+    'model_g300': { type: 'triple-vertical', count: 3 }, 
+    'model_g400': { type: 'triple-vertical', count: 3 }, 
+    'model_g500': { type: 'triple-vertical', count: 3 }, 
+    'model_g600': { type: 'triple-vertical', count: 3 }, 
+    'model_g700': { type: 'triple-vertical', count: 3 },
+  };
 
 // Render camera module based on configuration
 const CameraModule = ({ config, brandId }) => {
@@ -66,13 +133,13 @@ const CameraModule = ({ config, brandId }) => {
     return (
       <div className="absolute top-4 left-4 w-24 h-24 bg-[#1A1A1A] rounded-3xl p-2 border border-[#2A2A2A]">
         <div className="relative w-full h-full">
-          <div className="absolute top-1 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-[#0A0A0A] border-2 border-[#3A3A3A] flex items-center justify-center">
+          <div className="absolute top-1 left-1/2 -translate-x-9 w-7 h-7 rounded-full bg-[#0A0A0A] border-2 border-[#3A3A3A] flex items-center justify-center">
             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#1A1A2E] to-[#0A0A1A]" />
           </div>
           <div className="absolute bottom-1 left-1 w-7 h-7 rounded-full bg-[#0A0A0A] border-2 border-[#3A3A3A] flex items-center justify-center">
             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#1A1A2E] to-[#0A0A1A]" />
           </div>
-          <div className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-[#0A0A0A] border-2 border-[#3A3A3A] flex items-center justify-center">
+          <div className="absolute bottom-[30%] right-4 w-7 h-7 rounded-full bg-[#0A0A0A] border-2 border-[#3A3A3A] flex items-center justify-center">
             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#1A1A2E] to-[#0A0A1A]" />
           </div>
           <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#2A2A2A]" />
@@ -134,6 +201,8 @@ export default function Customizer() {
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
+  const [modelSearch, setModelSearch] = useState('');
+  const [showModels, setShowModels] = useState(false);
   
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState('');
@@ -152,6 +221,13 @@ export default function Customizer() {
   }, []);
 
   useEffect(() => {
+    // Cerrar dropdown al hacer click fuera
+    const handleClickOutside = () => setShowModels(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     if (productId && products.length > 0) {
       const product = products.find(p => p.product_id === productId);
       if (product) setSelectedProduct(product);
@@ -161,9 +237,14 @@ export default function Customizer() {
   useEffect(() => {
     if (selectedBrand) {
       fetchModels(selectedBrand);
+      setModelSearch('');
+      setSelectedModel('');
+      setShowModels(false);
     } else {
       setModels([]);
       setSelectedModel('');
+      setModelSearch('');
+      setShowModels(false);
     }
   }, [selectedBrand]);
 
@@ -387,18 +468,39 @@ export default function Customizer() {
 
                 <div>
                   <Label className="text-gray-400 mb-2 block text-sm">Modelo</Label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
-                    <SelectTrigger className="h-12 bg-[#1E1E2E] border-[#00FF88]/20 text-white" data-testid="model-select">
-                      <SelectValue placeholder={selectedBrand ? "Selecciona modelo" : "Primero selecciona marca"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1E1E2E] border-[#00FF88]/20">
-                      {models.map(m => (
-                        <SelectItem key={m.model_id} value={m.model_id} className="hover:bg-[#00FF88]/10">
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Input
+                      placeholder={selectedBrand ? "Escribe para buscar..." : "Primero selecciona marca"}
+                      value={modelSearch}
+                      onChange={(e) => {
+                        setModelSearch(e.target.value);
+                        setShowModels(true);
+                      }}
+                      onFocus={() => selectedBrand && setShowModels(true)}
+                      disabled={!selectedBrand}
+                      className="h-12 bg-[#1E1E2E] border-[#00FF88]/20 text-white"
+                      data-testid="model-search"
+                    />
+                    {showModels && selectedBrand && models.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#1E1E2E] border border-[#00FF88]/20 rounded max-h-48 overflow-y-auto z-50">
+                        {models
+                          .filter(m => m.name.toLowerCase().includes(modelSearch.toLowerCase()))
+                          .map(m => (
+                            <button
+                              key={m.model_id}
+                              onClick={() => {
+                                setSelectedModel(m.model_id);
+                                setModelSearch(m.name);
+                                setShowModels(false);
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-[#00FF88]/10 text-white transition-colors"
+                            >
+                              {m.name}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

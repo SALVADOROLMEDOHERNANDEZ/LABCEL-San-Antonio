@@ -110,7 +110,7 @@ export default function Privacy() {
             Para ejercer sus derechos o consultas sobre privacidad, contáctenos:
           </p>
           <ul className="list-disc pl-6 text-gray-600 space-y-2 mt-2">
-            <li>Email: olmedohernandezsalvador@gmail.com</li>
+            <li>Email: labcelsanantonio@gmail.com</li>
           </ul>
         </section>
       </div>
