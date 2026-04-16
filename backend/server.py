@@ -1249,6 +1249,18 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+# Serve assetlinks for TWA/Play Store verification
+@app.get("/.well-known/assetlinks.json")
+async def asset_links():
+    return JSONResponse(content=[{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.labcel.sanantonio",
+            "sha256_cert_fingerprints": ["REEMPLAZAR_CON_TU_FINGERPRINT"]
+        }
+    }])
+
 # Include the router in the main app
 app.include_router(api_router)
 
