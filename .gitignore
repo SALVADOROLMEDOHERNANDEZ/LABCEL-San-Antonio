@@ -138,4 +138,25 @@ credentials.json
 *.pem
 *.key
 .credentials
+<<<<<<< HEAD
 >>>>>>> 8093b4bb61315c6b2d4f54ef65f96c0bdccde179
+=======
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+>>>>>>> 4bbdfe2739c1d3831effb02a455462e8dd726d08

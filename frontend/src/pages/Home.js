@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { ArrowRight, Smartphone, Palette, Shield, Star, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Smartphone, Palette, Shield, Star, Sparkles, Zap, Download } from 'lucide-react';
 
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_78d76407-00e9-4982-b8fe-49b9e45052f0/artifacts/strtt6dl_labcellogo.png";
 
@@ -46,6 +47,28 @@ const testimonials = [
 ];
 
 export default function Home() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) { setIsInstalled(true); return; }
+    const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') setIsInstalled(true);
+      setDeferredPrompt(null);
+    }
+  };
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
   return (
     <div className="overflow-hidden bg-[#0A0A0F]">
       {/* Hero Section */}
@@ -110,6 +133,55 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Download App Section */}
+      {!isInstalled && (
+        <section className="py-12 relative bg-gradient-to-r from-[#00FF88]/5 via-[#0A0A0F] to-[#00D4FF]/5 border-y border-[#00FF88]/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#00FF88] to-[#00D4FF] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_0_30px_rgba(0,255,136,0.3)]">
+                  <Download className="h-8 w-8 text-[#0A0A0F]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold font-['Orbitron'] text-white">
+                    Descarga la App <span className="text-[#00FF88]">LABCEL</span>
+                  </h3>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {isIOS 
+                      ? 'Agrega LABCEL a tu pantalla de inicio desde Safari'
+                      : 'Instala nuestra app gratis en tu dispositivo para acceso rapido'
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 flex-shrink-0">
+                {deferredPrompt ? (
+                  <Button
+                    onClick={handleInstallClick}
+                    className="bg-gradient-to-r from-[#00FF88] to-[#00D4FF] text-[#0A0A0F] font-bold px-8 h-12 rounded-xl hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(0,255,136,0.2)]"
+                    data-testid="download-app-btn"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Instalar App Gratis
+                  </Button>
+                ) : isIOS ? (
+                  <div className="bg-[#12121A] border border-[#00FF88]/20 rounded-xl px-6 py-3 text-sm text-gray-300">
+                    <p className="font-medium text-white mb-1">Para instalar en iPhone:</p>
+                    <p className="text-gray-400">Safari &gt; Compartir &gt; Agregar a Inicio</p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[#12121A] border border-[#00FF88]/20 rounded-xl px-6 py-3 text-sm">
+                      <p className="text-gray-400">Abre esta pagina en <span className="text-[#00FF88] font-medium">Chrome</span> desde tu celular para instalar</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section className="py-20 relative bg-[#0A0A0F]">
