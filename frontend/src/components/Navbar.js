@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
-import { Menu, ShoppingCart, User, LogOut, Package, LayoutDashboard, ChevronDown, Sparkles } from 'lucide-react';
+import { Menu, ShoppingCart, User, LogOut, Package, LayoutDashboard, ChevronDown, Sparkles, Palette } from 'lucide-react';
 
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_78d76407-00e9-4982-b8fe-49b9e45052f0/artifacts/strtt6dl_labcellogo.png";
 
@@ -27,6 +27,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/catalogo', label: 'Catálogo' },
     { href: '/personalizar', label: 'Personalizar' },
+    { href: '/plantillas', label: 'Plantillas' },
     { href: '/rastrear', label: 'Rastrear Pedido' },
   ];
 
@@ -102,6 +103,10 @@ export default function Navbar() {
                     <Package className="mr-2 h-4 w-4" />
                     Mis Pedidos
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/mis-disenos')} className="hover:bg-[#00FF88]/10 cursor-pointer" data-testid="menu-my-designs">
+                    <Palette className="mr-2 h-4 w-4" />
+                    Mis Diseños
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator className="bg-[#00FF88]/10" />
@@ -156,6 +161,13 @@ export default function Navbar() {
                         className="text-lg font-medium hover:text-[#00FF88] transition-colors"
                       >
                         Mis Pedidos
+                      </Link>
+                      <Link
+                        to="/mis-disenos"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-lg font-medium hover:text-[#00FF88] transition-colors"
+                      >
+                        Mis Diseños
                       </Link>
                       {isAdmin && (
                         <Link

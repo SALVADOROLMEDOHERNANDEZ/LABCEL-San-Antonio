@@ -7,7 +7,9 @@ import {
   Users, 
   ChevronLeft,
   LogOut,
-  Home
+  Home,
+  Layout,
+  Tag
 } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -18,6 +20,8 @@ const navItems = [
   { href: '/admin/productos', icon: Package, label: 'Productos' },
   { href: '/admin/pedidos', icon: ShoppingCart, label: 'Pedidos' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuarios' },
+  { href: '/admin/plantillas', icon: Layout, label: 'Plantillas' },
+  { href: '/admin/cupones', icon: Tag, label: 'Cupones' },
 ];
 
 export default function AdminLayout({ children }) {

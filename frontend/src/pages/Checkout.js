@@ -9,7 +9,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { toast } from 'sonner';
-import { CheckCircle2, CreditCard, Store, ArrowLeft, Sparkles } from 'lucide-react';
+import { CheckCircle2, CreditCard, Store, ArrowLeft, Sparkles, Tag, X } from 'lucide-react';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -19,6 +19,9 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
   
   const [formData, setFormData] = useState({
     customer_name: user?.name || '',
@@ -33,6 +36,31 @@ export default function Checkout() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setValidatingCoupon(true);
+    try {
+      const res = await apiClient.post('/coupons/validate', { code: couponCode, subtotal: getTotal() });
+      setCouponApplied(res.data);
+      toast.success(res.data.description);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Cupón no válido');
+      setCouponApplied(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode('');
+  };
+
+  const getFinalTotal = () => {
+    const subtotal = getTotal();
+    return couponApplied ? Math.max(subtotal - couponApplied.discount, 0) : subtotal;
   };
 
   const handleSubmit = async (e) => {
@@ -57,7 +85,8 @@ export default function Checkout() {
           custom_image_url: item.custom_image_url,
           preview_image_url: item.preview_image_url
         })),
-        ...formData
+        ...formData,
+        coupon_code: couponApplied?.code || null
       });
 
       setOrderId(response.data.order_id);
@@ -280,6 +309,43 @@ export default function Checkout() {
               />
             </div>
 
+            {/* Coupon Section */}
+            <div className="card-futuristic p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Tag className="h-5 w-5 text-[#00FF88]" />
+                <h2 className="text-lg font-bold font-['Orbitron']">Cupón de Descuento</h2>
+              </div>
+              {couponApplied ? (
+                <div className="flex items-center justify-between bg-[#00FF88]/10 border border-[#00FF88]/30 rounded-lg p-3">
+                  <div>
+                    <span className="font-['JetBrains_Mono'] font-bold text-[#00FF88]">{couponApplied.code}</span>
+                    <span className="text-sm text-gray-400 ml-2">- {couponApplied.description}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={removeCoupon} className="text-gray-400 hover:text-red-400">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Ingresa tu código"
+                    className="flex-1 h-11 bg-[#1E1E2E] border-[#00FF88]/20 uppercase font-['JetBrains_Mono']"
+                    data-testid="coupon-input"
+                  />
+                  <Button
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    className="bg-[#00FF88] text-[#0A0A0F] hover:bg-[#00FF88]/90 h-11 px-6"
+                    data-testid="apply-coupon-btn"
+                  >
+                    {validatingCoupon ? 'Validando...' : 'Aplicar'}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <Button
               type="submit"
               className="w-full h-14 btn-futuristic text-lg"
@@ -292,7 +358,7 @@ export default function Checkout() {
                   Procesando...
                 </>
               ) : (
-                <>Confirmar Pedido - <span className="font-['JetBrains_Mono'] ml-2">${getTotal().toFixed(0)}</span></>
+                <>Confirmar Pedido - <span className="font-['JetBrains_Mono'] ml-2">${getFinalTotal().toFixed(0)}</span></>
               )}
             </Button>
           </form>
@@ -331,13 +397,19 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span className="font-['JetBrains_Mono']">${getTotal().toFixed(0)}</span>
                 </div>
+                {couponApplied && (
+                  <div className="flex justify-between text-[#00FF88]">
+                    <span>Descuento ({couponApplied.code})</span>
+                    <span className="font-['JetBrains_Mono']">-${couponApplied.discount.toFixed(0)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-400">
                   <span>Envío</span>
                   <span className="text-[#00FF88]">{formData.payment_method === 'recoger_tienda' ? 'Gratis' : 'A coordinar'}</span>
                 </div>
                 <div className="flex justify-between font-bold text-xl pt-2 border-t border-[#00FF88]/10">
                   <span>Total</span>
-                  <span className="text-[#00FF88] font-['JetBrains_Mono']">${getTotal().toFixed(0)}</span>
+                  <span className="text-[#00FF88] font-['JetBrains_Mono']">${getFinalTotal().toFixed(0)}</span>
                 </div>
               </div>
             </div>

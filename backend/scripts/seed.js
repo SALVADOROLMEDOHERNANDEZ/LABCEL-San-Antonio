@@ -27,7 +27,11 @@ const seed = async () => {
 
   const models = [
     // Apple iPhone - Todos los modelos
+<<<<<<< HEAD
    
+=======
+    { model_id: 'model_iphone11', brand_id: 'brand_apple', name: 'iPhone 11' },
+>>>>>>> 8093b4bb61315c6b2d4f54ef65f96c0bdccde179
     { model_id: 'model_iphone11pro', brand_id: 'brand_apple', name: 'iPhone 11 Pro' },
     { model_id: 'model_iphone11promax', brand_id: 'brand_apple', name: 'iPhone 11 Pro Max' },
     { model_id: 'model_iphone12', brand_id: 'brand_apple', name: 'iPhone 12' },

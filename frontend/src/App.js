@@ -11,18 +11,23 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import TrackOrder from "./pages/TrackOrder";
 import MyOrders from "./pages/MyOrders";
+import Templates from "./pages/Templates";
+import MyDesigns from "./pages/MyDesigns";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminOrders from "./pages/admin/Orders";
 import AdminUsers from "./pages/admin/Users";
+import AdminTemplates from "./pages/admin/Templates";
+import AdminCoupons from "./pages/admin/Coupons";
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AuthCallback from "./components/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
+import InstallPWA from "./components/InstallPWA";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -62,6 +67,7 @@ function AppRouter() {
       <Route path="/catalogo" element={<Catalog />} />
       <Route path="/personalizar" element={<Customizer />} />
       <Route path="/personalizar/:productId" element={<Customizer />} />
+      <Route path="/plantillas" element={<Templates />} />
       <Route path="/carrito" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/rastrear" element={<TrackOrder />} />
@@ -75,6 +81,7 @@ function AppRouter() {
           <MyOrders />
         </ProtectedRoute>
       } />
+      <Route path="/mis-disenos" element={<MyDesigns />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={
@@ -97,6 +104,16 @@ function AppRouter() {
           <AdminUsers />
         </ProtectedRoute>
       } />
+      <Route path="/admin/plantillas" element={
+        <ProtectedRoute requireAdmin>
+          <AdminTemplates />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/cupones" element={
+        <ProtectedRoute requireAdmin>
+          <AdminCoupons />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 }
@@ -114,6 +131,7 @@ function App() {
             <Footer />
           </div>
           <Toaster position="top-right" richColors closeButton />
+          <InstallPWA />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
