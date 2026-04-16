@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../App';
 import { useCart } from '../context/CartContext';
@@ -217,8 +217,28 @@ export default function Customizer() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, brandsRes] = await Promise.all([
+          apiClient.get('/products'),
+          apiClient.get('/phone-brands')
+        ]);
+        setProducts(productsRes.data);
+        setBrands(brandsRes.data);
+        
+        if (!productId && productsRes.data.length > 0) {
+          setSelectedProduct(productsRes.data[0]);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('Error al cargar datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchData();
-  }, []);
+  }, [productId]);
 
   useEffect(() => {
     // Cerrar dropdown al hacer click fuera
@@ -234,6 +254,15 @@ export default function Customizer() {
     }
   }, [productId, products]);
 
+  const fetchModels = useCallback(async (brandId) => {
+    try {
+      const response = await apiClient.get(`/phone-models?brand_id=${brandId}`);
+      setModels(response.data);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (selectedBrand) {
       fetchModels(selectedBrand);
@@ -246,36 +275,7 @@ export default function Customizer() {
       setModelSearch('');
       setShowModels(false);
     }
-  }, [selectedBrand]);
-
-  const fetchData = async () => {
-    try {
-      const [productsRes, brandsRes] = await Promise.all([
-        apiClient.get('/products'),
-        apiClient.get('/phone-brands')
-      ]);
-      setProducts(productsRes.data);
-      setBrands(brandsRes.data);
-      
-      if (!productId && productsRes.data.length > 0) {
-        setSelectedProduct(productsRes.data[0]);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al cargar datos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchModels = async (brandId) => {
-    try {
-      const response = await apiClient.get(`/phone-models?brand_id=${brandId}`);
-      setModels(response.data);
-    } catch (error) {
-      console.error('Error fetching models:', error);
-    }
-  };
+  }, [selectedBrand, fetchModels]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];

@@ -13,6 +13,12 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
+      // Try to get token from sessionStorage (fallback for development)
+      const token = sessionStorage.getItem('session_token');
+      if (token) {
+        // Token exists, axios interceptor will use it
+      }
+      
       const response = await apiClient.get('/auth/me');
       setUser(response.data);
     } catch (error) {
@@ -31,6 +37,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await apiClient.post('/auth/logout');
+      sessionStorage.removeItem('session_token');
       setUser(null);
       window.location.href = '/';
     } catch (error) {
