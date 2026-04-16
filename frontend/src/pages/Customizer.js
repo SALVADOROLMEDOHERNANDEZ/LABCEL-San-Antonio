@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../App';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
-import { Upload, RotateCcw, ZoomIn, ZoomOut, ShoppingCart, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, RotateCcw, ZoomIn, ZoomOut, ShoppingCart, Image as ImageIcon, Sparkles, Save, Layout } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Camera configurations for different phone models
@@ -195,7 +196,9 @@ const CameraModule = ({ config, brandId }) => {
 export default function Customizer() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
+  const { user } = useAuth();
   const fileInputRef = useRef(null);
 
   const [products, setProducts] = useState([]);

@@ -104,8 +104,9 @@ class OrderCreate(BaseModel):
     customer_phone: str
     customer_whatsapp: Optional[str] = None
     shipping_address: str
-    payment_method: str = "transferencia"  # transferencia, recoger_tienda
+    payment_method: str = "transferencia"
     notes: Optional[str] = None
+    coupon_code: Optional[str] = None
 
 class Order(BaseModel):
     order_id: str = Field(default_factory=lambda: f"ORD-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}")
@@ -119,6 +120,8 @@ class Order(BaseModel):
     payment_method: str
     notes: Optional[str] = None
     subtotal: float
+    discount: float = 0
+    coupon_code: Optional[str] = None
     total: float
     status: str = "pendiente"  # pendiente, confirmado, en_proceso, enviado, entregado, cancelado
     status_history: List[Dict[str, Any]] = []
@@ -537,7 +540,23 @@ async def create_order(order_data: OrderCreate, background_tasks: BackgroundTask
     
     # Calculate totals
     subtotal = sum(item.price * item.quantity for item in order_data.items)
-    total = subtotal  # No shipping fee for now
+    discount = 0
+    coupon_applied = None
+    
+    if order_data.coupon_code:
+        coupon = await db.coupons.find_one({"code": order_data.coupon_code.upper(), "is_active": True})
+        if coupon:
+            if coupon["discount_type"] == "percentage":
+                discount = subtotal * (coupon["discount_value"] / 100)
+            else:
+                discount = min(coupon["discount_value"], subtotal)
+            coupon_applied = coupon["code"]
+            await db.coupons.update_one(
+                {"coupon_id": coupon["coupon_id"]},
+                {"$inc": {"current_uses": 1}}
+            )
+    
+    total = max(subtotal - discount, 0)
     
     # Create order
     order = Order(
@@ -551,6 +570,8 @@ async def create_order(order_data: OrderCreate, background_tasks: BackgroundTask
         payment_method=order_data.payment_method,
         notes=order_data.notes,
         subtotal=subtotal,
+        discount=discount,
+        coupon_code=coupon_applied,
         total=total,
         status_history=[{
             "status": "pendiente",
@@ -835,6 +856,272 @@ async def get_notifications(request: Request, limit: int = 50):
     
     return notifications
 
+# ==================== TEMPLATES (PLANTILLAS) ====================
+
+class Template(BaseModel):
+    template_id: str = Field(default_factory=lambda: f"tmpl_{uuid.uuid4().hex[:8]}")
+    name: str
+    image_url: str
+    category: str = "general"  # general, naturaleza, abstracto, deportes, anime, mascotas
+    tags: List[str] = []
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TemplateCreate(BaseModel):
+    name: str
+    image_url: str
+    category: str = "general"
+    tags: List[str] = []
+
+@api_router.get("/templates")
+async def get_templates(category: Optional[str] = None):
+    query = {"is_active": True}
+    if category and category != "todas":
+        query["category"] = category
+    templates = await db.templates.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return templates
+
+@api_router.post("/templates")
+async def create_template(tmpl: TemplateCreate, request: Request):
+    await require_admin(request)
+    new_tmpl = Template(**tmpl.model_dump())
+    doc = new_tmpl.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.templates.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@api_router.put("/templates/{template_id}")
+async def update_template(template_id: str, request: Request):
+    await require_admin(request)
+    body = await request.json()
+    body.pop("_id", None)
+    result = await db.templates.update_one({"template_id": template_id}, {"$set": body})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+    tmpl = await db.templates.find_one({"template_id": template_id}, {"_id": 0})
+    return tmpl
+
+@api_router.delete("/templates/{template_id}")
+async def delete_template(template_id: str, request: Request):
+    await require_admin(request)
+    result = await db.templates.delete_one({"template_id": template_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+    return {"message": "Plantilla eliminada"}
+
+# ==================== COUPONS (CUPONES) ====================
+
+class Coupon(BaseModel):
+    coupon_id: str = Field(default_factory=lambda: f"cup_{uuid.uuid4().hex[:8]}")
+    code: str
+    discount_type: str = "percentage"  # percentage, fixed
+    discount_value: float
+    min_purchase: float = 0
+    max_uses: int = 0  # 0 = unlimited
+    current_uses: int = 0
+    expires_at: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CouponCreate(BaseModel):
+    code: str
+    discount_type: str = "percentage"
+    discount_value: float
+    min_purchase: float = 0
+    max_uses: int = 0
+    expires_at: Optional[str] = None
+
+@api_router.get("/coupons")
+async def get_coupons(request: Request):
+    await require_admin(request)
+    coupons = await db.coupons.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return coupons
+
+@api_router.post("/coupons")
+async def create_coupon(coupon: CouponCreate, request: Request):
+    await require_admin(request)
+    existing = await db.coupons.find_one({"code": coupon.code.upper()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe un cupón con ese código")
+    new_coupon = Coupon(**coupon.model_dump())
+    new_coupon.code = new_coupon.code.upper()
+    doc = new_coupon.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.coupons.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@api_router.put("/coupons/{coupon_id}")
+async def update_coupon(coupon_id: str, request: Request):
+    await require_admin(request)
+    body = await request.json()
+    body.pop("_id", None)
+    if "code" in body:
+        body["code"] = body["code"].upper()
+    result = await db.coupons.update_one({"coupon_id": coupon_id}, {"$set": body})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cupón no encontrado")
+    coupon = await db.coupons.find_one({"coupon_id": coupon_id}, {"_id": 0})
+    return coupon
+
+@api_router.delete("/coupons/{coupon_id}")
+async def delete_coupon(coupon_id: str, request: Request):
+    await require_admin(request)
+    result = await db.coupons.delete_one({"coupon_id": coupon_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Cupón no encontrado")
+    return {"message": "Cupón eliminado"}
+
+@api_router.post("/coupons/validate")
+async def validate_coupon(request: Request):
+    body = await request.json()
+    code = body.get("code", "").upper()
+    subtotal = body.get("subtotal", 0)
+    
+    coupon = await db.coupons.find_one({"code": code, "is_active": True}, {"_id": 0})
+    if not coupon:
+        raise HTTPException(status_code=404, detail="Cupón no válido")
+    
+    if coupon.get("expires_at"):
+        exp = datetime.fromisoformat(coupon["expires_at"])
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if exp < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Cupón expirado")
+    
+    if coupon.get("max_uses", 0) > 0 and coupon.get("current_uses", 0) >= coupon["max_uses"]:
+        raise HTTPException(status_code=400, detail="Cupón agotado")
+    
+    if subtotal < coupon.get("min_purchase", 0):
+        raise HTTPException(status_code=400, detail=f"Compra mínima de ${coupon['min_purchase']:.0f}")
+    
+    if coupon["discount_type"] == "percentage":
+        discount = subtotal * (coupon["discount_value"] / 100)
+        desc = f"{coupon['discount_value']:.0f}% de descuento"
+    else:
+        discount = min(coupon["discount_value"], subtotal)
+        desc = f"${coupon['discount_value']:.0f} de descuento"
+    
+    return {
+        "valid": True,
+        "code": coupon["code"],
+        "discount": round(discount, 2),
+        "description": desc,
+        "coupon_id": coupon["coupon_id"]
+    }
+
+# ==================== REVIEWS (RESENAS) ====================
+
+class ReviewCreate(BaseModel):
+    product_id: str
+    rating: int = Field(ge=1, le=5)
+    comment: str
+
+@api_router.get("/reviews")
+async def get_reviews(product_id: Optional[str] = None, limit: int = 50):
+    query = {}
+    if product_id:
+        query["product_id"] = product_id
+    reviews = await db.reviews.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    return reviews
+
+@api_router.post("/reviews")
+async def create_review(review: ReviewCreate, request: Request):
+    user = await require_auth(request)
+    
+    existing = await db.reviews.find_one({
+        "user_id": user["user_id"],
+        "product_id": review.product_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya dejaste una reseña para este producto")
+    
+    doc = {
+        "review_id": f"rev_{uuid.uuid4().hex[:8]}",
+        "user_id": user["user_id"],
+        "user_name": user.get("name", "Anónimo"),
+        "user_picture": user.get("picture"),
+        "product_id": review.product_id,
+        "rating": review.rating,
+        "comment": review.comment,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.reviews.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@api_router.delete("/reviews/{review_id}")
+async def delete_review(review_id: str, request: Request):
+    user = await require_auth(request)
+    review = await db.reviews.find_one({"review_id": review_id})
+    if not review:
+        raise HTTPException(status_code=404, detail="Reseña no encontrada")
+    if review["user_id"] != user["user_id"] and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No autorizado")
+    await db.reviews.delete_one({"review_id": review_id})
+    return {"message": "Reseña eliminada"}
+
+@api_router.get("/reviews/stats")
+async def get_review_stats(product_id: Optional[str] = None):
+    query = {}
+    if product_id:
+        query["product_id"] = product_id
+    pipeline = [
+        {"$match": query},
+        {"$group": {
+            "_id": "$product_id",
+            "avg_rating": {"$avg": "$rating"},
+            "total_reviews": {"$sum": 1}
+        }}
+    ]
+    stats = await db.reviews.aggregate(pipeline).to_list(100)
+    return {s["_id"]: {"avg_rating": round(s["avg_rating"], 1), "total_reviews": s["total_reviews"]} for s in stats}
+
+# ==================== SAVED DESIGNS (DISENOS GUARDADOS) ====================
+
+class SavedDesignCreate(BaseModel):
+    name: str
+    product_id: str
+    phone_brand: str
+    phone_model: str
+    phone_brand_name: str = ""
+    phone_model_name: str = ""
+    custom_image_url: Optional[str] = None
+    preview_image_url: Optional[str] = None
+    image_position_x: float = 50
+    image_position_y: float = 50
+    image_scale: float = 100
+
+@api_router.get("/designs")
+async def get_saved_designs(request: Request):
+    user = await require_auth(request)
+    designs = await db.saved_designs.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return designs
+
+@api_router.post("/designs")
+async def save_design(design: SavedDesignCreate, request: Request):
+    user = await require_auth(request)
+    doc = {
+        "design_id": f"des_{uuid.uuid4().hex[:8]}",
+        "user_id": user["user_id"],
+        **design.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.saved_designs.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@api_router.delete("/designs/{design_id}")
+async def delete_design(design_id: str, request: Request):
+    user = await require_auth(request)
+    result = await db.saved_designs.delete_one({
+        "design_id": design_id,
+        "user_id": user["user_id"]
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Diseño no encontrado")
+    return {"message": "Diseño eliminado"}
+
 # ==================== SEED DATA ====================
 
 @api_router.post("/seed")
@@ -915,6 +1202,45 @@ async def seed_data():
         )
     
     return {"message": "Datos iniciales creados correctamente"}
+
+@api_router.post("/seed-extras")
+async def seed_extras():
+    """Seed templates and coupons"""
+    
+    templates = [
+        {"template_id": "tmpl_galaxy", "name": "Galaxia Nebulosa", "image_url": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400&q=80", "category": "abstracto", "tags": ["espacio", "galaxia", "estrellas"], "is_active": True},
+        {"template_id": "tmpl_flowers", "name": "Flores Silvestres", "image_url": "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=400&q=80", "category": "naturaleza", "tags": ["flores", "primavera", "colorido"], "is_active": True},
+        {"template_id": "tmpl_abstract", "name": "Arte Abstracto", "image_url": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&q=80", "category": "abstracto", "tags": ["arte", "colores", "moderno"], "is_active": True},
+        {"template_id": "tmpl_ocean", "name": "Olas del Mar", "image_url": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=400&q=80", "category": "naturaleza", "tags": ["mar", "olas", "azul"], "is_active": True},
+        {"template_id": "tmpl_neon", "name": "Neon City", "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80", "category": "abstracto", "tags": ["neon", "ciudad", "nocturno"], "is_active": True},
+        {"template_id": "tmpl_pet", "name": "Huellitas", "image_url": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80", "category": "mascotas", "tags": ["perro", "mascotas", "tierno"], "is_active": True},
+        {"template_id": "tmpl_sunset", "name": "Atardecer Dorado", "image_url": "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=400&q=80", "category": "naturaleza", "tags": ["atardecer", "sol", "dorado"], "is_active": True},
+        {"template_id": "tmpl_marble", "name": "Mármol Elegante", "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=80", "category": "abstracto", "tags": ["mármol", "elegante", "minimalista"], "is_active": True},
+    ]
+    
+    for tmpl in templates:
+        tmpl["created_at"] = datetime.now(timezone.utc).isoformat()
+        await db.templates.update_one(
+            {"template_id": tmpl["template_id"]},
+            {"$set": tmpl},
+            upsert=True
+        )
+    
+    coupons = [
+        {"coupon_id": "cup_welcome", "code": "BIENVENIDO10", "discount_type": "percentage", "discount_value": 10, "min_purchase": 0, "max_uses": 100, "current_uses": 0, "is_active": True},
+        {"coupon_id": "cup_first", "code": "PRIMERA20", "discount_type": "percentage", "discount_value": 20, "min_purchase": 280, "max_uses": 50, "current_uses": 0, "is_active": True},
+        {"coupon_id": "cup_50off", "code": "DESCUENTO50", "discount_type": "fixed", "discount_value": 50, "min_purchase": 200, "max_uses": 30, "current_uses": 0, "is_active": True},
+    ]
+    
+    for coupon in coupons:
+        coupon["created_at"] = datetime.now(timezone.utc).isoformat()
+        await db.coupons.update_one(
+            {"coupon_id": coupon["coupon_id"]},
+            {"$set": coupon},
+            upsert=True
+        )
+    
+    return {"message": "Plantillas y cupones creados correctamente"}
 
 # ==================== HEALTH CHECK ====================
 

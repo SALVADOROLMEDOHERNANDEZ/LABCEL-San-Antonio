@@ -11,12 +11,16 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import TrackOrder from "./pages/TrackOrder";
 import MyOrders from "./pages/MyOrders";
+import Templates from "./pages/Templates";
+import MyDesigns from "./pages/MyDesigns";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminOrders from "./pages/admin/Orders";
 import AdminUsers from "./pages/admin/Users";
+import AdminTemplates from "./pages/admin/Templates";
+import AdminCoupons from "./pages/admin/Coupons";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -54,6 +58,7 @@ function AppRouter() {
       <Route path="/catalogo" element={<Catalog />} />
       <Route path="/personalizar" element={<Customizer />} />
       <Route path="/personalizar/:productId" element={<Customizer />} />
+      <Route path="/plantillas" element={<Templates />} />
       <Route path="/carrito" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/rastrear" element={<TrackOrder />} />
@@ -65,6 +70,11 @@ function AppRouter() {
       <Route path="/mis-pedidos" element={
         <ProtectedRoute>
           <MyOrders />
+        </ProtectedRoute>
+      } />
+      <Route path="/mis-disenos" element={
+        <ProtectedRoute>
+          <MyDesigns />
         </ProtectedRoute>
       } />
       
@@ -87,6 +97,16 @@ function AppRouter() {
       <Route path="/admin/usuarios" element={
         <ProtectedRoute requireAdmin>
           <AdminUsers />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/plantillas" element={
+        <ProtectedRoute requireAdmin>
+          <AdminTemplates />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/cupones" element={
+        <ProtectedRoute requireAdmin>
+          <AdminCoupons />
         </ProtectedRoute>
       } />
     </Routes>
